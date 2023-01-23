@@ -20,7 +20,7 @@ body {
 }
 h1 {
   letter-spacing: .1em;
-  font-size: 92px;
+  font-size: 7vw;
   padding: 8px 0px;
   text-align: center;
   text-transform: uppercase;
@@ -38,7 +38,7 @@ input {
 }
 section > h2 {
   letter-spacing: .1em;
-  font-size: 52px;
+  font-size: 4vw;
   text-align: center;
   margin-top: -.4rem
 }
@@ -47,11 +47,8 @@ section > h3 {
   font-size: 32px;
   text-align: center;
 }
-section {
-  margin-bottom: 50px;
-}
 section > p {
-  font-size: 18px;
+  font-size: 2vw;
   text-align: center;
 }
 section:not(:first-child) {
@@ -87,7 +84,7 @@ div.skills-cards{
 .card > h3 {
   font-size: 34px;
   text-align: center;
-  margin-top:-1em;
+  margin-top:-1.4rem;
 }
 div.skills-cards > div.card {
   width: 20%;
@@ -126,13 +123,34 @@ div.skills-cards > div.card {
   margin: 2rem;
 }
 .skills-cards > .skill-card:hover {
-  color: #858585;
+  color: #fff;
   cursor: default;
   transition: color 0.3s
 }
 .contact-form {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  width: 100%;
+  justify-content: center;
 }
+a {
+  color: #858585;
+  text-decoration: none;
+}
+section:first-of-type{
+  max-width: 75ch;
+  margin: auto;
+  /* margin-bottom: 200px; */
+}
+hr {
+  border: 0;
+  height: 2px;
+  background-image: linear-gradient(to right, rgba(32, 32, 32, 0), rgb(32, 32, 32), rgba(32, 32, 32, 0));
+  margin:150px
+}
+@media (max-width: 850px) {
+  section > p {
+    font-size: 4vw;
+    text-align: center;
+  }
+}
+
