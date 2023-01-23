@@ -1,0 +1,138 @@
+body {
+    background-color: #2d2d2d;
+    font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif;
+    color: #858585;
+    font-size: 26px;
+}
+.dark-inset {
+  color: #202020;
+  text-shadow: 
+    -1px -1px 1px #111, 
+    2px 2px 1px #363636;
+    transition: color 0.6s
+}
+.light-inset {
+  color: #858585;
+  text-shadow: 
+    -1px -1px 1px #111, 
+    2px 2px 1px #363636;
+    transition: color 0.6s
+}
+h1 {
+  letter-spacing: .1em;
+  font-size: 92px;
+  padding: 8px 0px;
+  text-align: center;
+  text-transform: uppercase;
+  text-rendering: optimizeLegibility;
+}
+input {
+  /* box-shadow: inset; */
+  background-color: #202020;
+  border-top: 2px solid #111;
+  border-left: 2px solid #111;
+  border-bottom: 3px solid #363636;
+  border-right: 3px solid #363636;
+  border-radius: 4px;
+  color: rgb(97, 97, 97);
+}
+section > h2 {
+  letter-spacing: .1em;
+  font-size: 52px;
+  text-align: center;
+  margin-top: -.4rem
+}
+section > h3 {
+  letter-spacing: .1em;
+  font-size: 32px;
+  text-align: center;
+}
+section {
+  margin-bottom: 50px;
+}
+section > p {
+  font-size: 18px;
+  text-align: center;
+}
+section:not(:first-child) {
+  margin-top: 1rem;
+}
+div.project-cards{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+div.skills-cards{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.card {
+  background-color: #202020;
+  border-top: 2px solid #111;
+  border-left: 2px solid #111;
+  border-bottom: 3px solid #363636;
+  border-right: 3px solid #363636;
+  border-radius: 4px;
+  color: rgb(97, 97, 97);
+  padding: 1rem;
+  margin: 1rem;
+  padding-top: 0px;
+  word-wrap: break-word;
+}
+.card > p {
+  max-width: 50ch;
+  text-align: center;
+}
+.card > h3 {
+  font-size: 34px;
+  text-align: center;
+  margin-top:-1em;
+}
+div.skills-cards > div.card {
+  width: 20%;
+  margin: 1rem;
+}
+.project-detail-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+}
+.project-detail-cards > div {
+  /* width: 45%; */
+  /* margin: 1rem; */
+  font-size: 16px;
+}
+.project-detail-cards > div > h4 {
+  text-align: center;
+  font-size: 24px;
+}
+.project-detail-cards > div > ul {
+  list-style-type: none;
+  padding: 0;
+  font-weight: 600;
+}
+.project-detail-cards > div > ul > li > ul {
+  font-weight: normal;
+}
+.project-cards > div > p {
+  font-size: 20px;
+}
+.skills-cards {
+  font-size: 20px;
+}
+.skills-cards > .skill-card {
+  margin: 2rem;
+}
+.skills-cards > .skill-card:hover {
+  color: #858585;
+  cursor: default;
+  transition: color 0.3s
+}
+.contact-form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+}
