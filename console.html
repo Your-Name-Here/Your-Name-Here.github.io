@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spencer Archdeacon</title>
+    <style>
+        body{
+            background-color: rgb(31, 31, 31);
+        }
+        portfolio-console > div {
+            font-size: 22px;
+        }
+        .directory {
+            color: rgb(0, 255, 0);
+        }
+        .command {
+            color: rgb(47, 136, 210);
+        }
+        .console-container {
+            width: 75%;
+        }
+        .party {
+            background: linear-gradient(90deg, #3e3e3e, #138edb, #3e3e3e);
+            background-repeat: no-repeat;
+            background-size: 80%;
+            animation: animate 3s linear infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: rgba(255, 255, 255, 0);
+        }
+        @keyframes animate {
+            0% {
+                background-position: -500%;
+            }
+            100% {
+                background-position: 500%;
+            }
+        }
+        /* Firefox */
+        * {
+            scrollbar-width: auto;
+            scrollbar-color: #555555 rgb(14, 14, 14);
+        }
+        *::-webkit-scrollbar {
+            width: 16px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: rgb(27, 27, 27);
+            border-bottom-right-radius: 10px;
+        }
+        
+        *::-webkit-scrollbar-thumb {
+            background-color: #555555b3;
+            border-bottom-right-radius: 10px;
+            border-top-right-radius: 10px;
+            border: 3px groove #292929;
+        }
+    </style>
+</head>
+<body>
+    <script src="web-components/Console.js"></script>
+    <portfolio-console />
+    <script type="text/javascript">
+        var _console = document.querySelector("portfolio-console");
+        _console.addEventListener("command", function(e){
+            console.log('Command received', e.detail);
+        });
+    </script>
+</body>
+</html>
