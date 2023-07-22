@@ -90,9 +90,25 @@ class Console extends HTMLElement {
         this.titleSpan.innerHTML = this._title;
     }
     askQuestion(question, cb){
-        this._requiresFeedback = true;
-        this.insertLine(question, true);
-        this._question = {question, cb};
+        return new Promise( ( resolve, reject ) => {
+            this.addEventListener("question_answered", (event) => { 
+                resolve(event.detail.answer);
+                this._requiresFeedback = false;
+                this.input = '';
+            });
+            this._requiresFeedback = true;
+            this.insertLine(question, true);
+            this._question = {question, cb};
+        }, {once: true});
+    }
+    emitAnswer(answer){
+        const event = new CustomEvent("question_answered", {
+            detail: {
+                answer
+            }
+        });
+        this.dispatchEvent(event);
+        this._question = null;
     }
     connectedCallback(){
     }
@@ -250,6 +266,10 @@ const commands = {
             c.insertLine('', true);
         }
     },
+    assist: {
+        description: "Talk to my assistant to get in touch",
+        run: assistant
+    },
     about: {
         description: "About me",
         run: async (c) => {
@@ -352,6 +372,7 @@ const commands = {
         }
     }
 }
+const api = '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';
 async function projects(c){
     c.title = "Projects";
     const {elipsis, stop} = c.animatedElipsis();
@@ -367,6 +388,7 @@ async function projects(c){
         c._question = null;
         c.input = '';
         if(answer == 1){
+            c.emitAnswer(answer);
             await c.insertLine('Fetching project', false, false);
             await c.insertLine('', false, false);
             await c.insertLine('--- Lambot ---', false, false, true);
@@ -392,7 +414,7 @@ async function projects(c){
     });
 }
 async function handleKeypress(event){
-    const acceptableKeys = ["Enter", "Backspace", "Escape", 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/ ', '1234567890', ' ' ]
+    const acceptableKeys = ["Enter", "Backspace", "Escape", 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/ .@', '1234567890', ' ' ]
     if (event.key === "Enter" || event.key == '{enter}'){
         try{
             document.querySelector(".cursor")?.remove();
@@ -441,7 +463,7 @@ async function handleKeypress(event){
     } else if (event.key == 'ArrowDown'){
         this.input = this.history[this.historyPointer++];
         this.updateInput();
-    } else if (event.key == ' ') {
+    } else if (event.key == ' ' || event.key == '{space}') {
         this.input += '&nbsp;';
     } else if (acceptableKeys[3].includes(event.key) || acceptableKeys[4].includes(event.key)) {
         this.input += event.key;
@@ -458,7 +480,7 @@ function showKeyboard(){
                 '/help /clear',
                 'q w e r t y u i o p {bksp}',
                 'a s d f g h j k l {enter}',
-                'z x c v b n m /',
+                'z x c v b n m . / @',
                 '{space}'
             ]
         },
@@ -480,4 +502,103 @@ function showKeyboard(){
             }
         },
     });
+ }
+ async function assistant(c){
+    let name = '';
+    let email = '';
+    let phone = '';
+    let query = '';
+    c.title = "AI Assistant";
+    c.insertLine('Hello, I am Spencer\'s assistant. I can help you get in touch.', false, false);
+    await c.askQuestion('First, what is your name?', (answer) => {
+        name = answer;
+        c.emitAnswer(answer);
+        return;
+    })
+    await c.askQuestion(`Okay ${name}, what is an email where Spencer can get in touch with you?`, (answer) => {
+        email = answer;
+        c.emitAnswer(answer);
+        return;
+    })
+    await c.askQuestion('What is a phone number? [skip] to skip this.', (answer) => {
+        phone = answer;
+        c.emitAnswer(answer);
+        return;
+    })
+    await c.askQuestion('Can you give me 2-3 sentence message to give to Spencer?', async (answer) => {
+        answer = answer.replaceAll('&nbsp;', ' ');
+        query = answer;
+        const history = [
+            {
+                role: 'system',
+                content: `You are an assistant to Spencer Archdeacon. Pretend you are face to face with ${name}.`
+            },
+            {
+                role: 'assistant',
+                content: `what is your name?`
+            },
+            {
+                role: 'user',
+                content: name
+            },
+            {
+                role: 'assistant',
+                content: `what is an email where Spencer can get in touch with you?`
+            },
+            {
+                role: 'user',
+                content: email
+            },
+            {
+                role: 'assistant',
+                content: `what is the message I can give to Spencer?`
+            },
+            {
+                role: 'user',
+                content: query
+            },
+            {
+                role: 'system',
+                content: `thank ${name} and Summarize their message back to them as if to clarify it and let them know you will pass it along to Spencer. Do not ask any questions he will reply to your email`
+            }
+        ]
+        c.emitAnswer(answer);
+        try{
+            // const text = await gpt(`Please reply as if youre an automated assistant to Spencer. You\'re assisting ${name} face to face so reply like a human. Dont ask any questions, just summarize what they said and thank them by name. They want to leave Spencer this message: ${query}`);
+            const text = await gpt(query, name, history);
+            await c.insertText(text);
+        } catch(e){
+            console.error(e);
+            await c.insertText(`I'm sorry, I don't understand.`);
+        } finally{
+            await c.insertLine('', true);
+        }
+        return;
+    });
+    c.insertLine('', true);
+ }
+ async function gpt(text, from, messages){
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${api}`,
+            },
+            body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: messages || [],
+                max_tokens: 150,
+                temperature: 0.5,
+                top_p: 1,
+                stream: false,
+                frequency_penalty: 0,
+                presence_penalty: 0
+            })
+        });
+        if(response.ok){
+            const data = await response.json();
+            return data.choices[0].message.content;
+        } else {
+            throw new Error('AI Error');
+        }
  }
