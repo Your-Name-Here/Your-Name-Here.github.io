@@ -6,24 +6,23 @@ class Console extends HTMLElement {
         this._histPointer = null;
         this._question = null;
         this.keyboard = null;
-        // create a container div
         this._console = document.createElement("div");
         this._console.className = "console";
         document.body.appendChild(this._console);
         this.input = ''
-        // create a header div
         this._header = document.createElement("div");
-        // create a body div
         this._body = document.createElement("div");
         this._console.appendChild(this._header);
         this._console.appendChild(this._body);
         this._setupCSS();
         this._title = "Spencer Archdeacon - Portfolio";
-        this._header.innerHTML = this.title;
         const image = document.createElement("img");
         image.src = "./web-components/keyboard.png";
         image.style.height = "100%";
         image.style.cursor = "pointer";
+        this.titleSpan = document.createElement("span");
+        this.titleSpan.innerHTML = this.title;
+        this._header.appendChild(this.titleSpan);
         this._header.appendChild(image);
         const style = document.createElement("style");
         const keyframes = `@keyframes blink {
@@ -51,7 +50,7 @@ class Console extends HTMLElement {
         this._body.addEventListener("keydown", handleKeypress.bind(this));
         this.showKeyboard = false;
         image.addEventListener("click", () => {
-            image.remove()
+            image.remove();
             showKeyboard.bind(this)();
         }, {once: true});
         window.addEventListener("resize", (event) => {
@@ -88,7 +87,7 @@ class Console extends HTMLElement {
     }
     set title(value){
         this._title = value;
-        this._header.innerHTML = this._title;
+        this.titleSpan.innerHTML = this._title;
     }
     askQuestion(question, cb){
         this._requiresFeedback = true;
@@ -147,7 +146,6 @@ class Console extends HTMLElement {
     updateInput(){
         if(this._question){
             this.inputSpan.innerHTML = this._question.question + ' ' +this.input;
-            // this.inputSpan.appendChild(this._cursor());
         } else {
             this.inputSpan.innerHTML = this.input;
         }
@@ -166,7 +164,6 @@ class Console extends HTMLElement {
             padding: "5px",
             fontWeight: "bold",
             fontSize: "clamp(15px, 2vw, 20px)",
-            // borderBottom: "1px solid white",
             minWidth: "384px",
             borderTopLeftRadius: "5px",
             borderTopRightRadius: "5px",
@@ -206,9 +203,7 @@ class Console extends HTMLElement {
         this._console.style.boxShadow = "0px 0px 15px 0px black";
     }
     async insertText(text){
-        // text = text.replaceAll(' ', '&nbsp;');
         for (let i = 1; i < text.length+1; i++){
-            // debugger
             this.inputSpan.innerHTML = text.slice(0, i);
             this.scroll();
             await sleep(20);
@@ -284,7 +279,7 @@ const commands = {
     resume: {
         description: "Download my resume",
         run: (c) => {
-            c.insertLine('Error: Resume file not found.', false, false, false, 'red');
+            c.insertLine('Error: Resume File Not Found.', false, false, false, 'rgb(150, 0, 0)');
             c.insertLine('', true);
         }
     },
@@ -348,12 +343,9 @@ const commands = {
             for(const el of elements) {
                 el.className += ' party';
                 await sleep(Math.random() * 500)
-                // debugger
             }
             for(const el of spans) {
                 el.className += ' party';
-                // await sleep(Math.random() * 500)
-                // debugger
             }
             c.insertLine('/clear to stop partying', false );
             c.insertLine('', true);
@@ -380,7 +372,9 @@ async function projects(c){
             await c.insertLine('--- Lambot ---', false, false, true);
             await c.insertLine('', false, false);
             await c.insertText('Lambot is a cryptocurrency trading bot. It is a NodeJS application that uses exchange APIs to trade cryptocurrencies. It is a fully automated trading bot that can be configured to trade any cryptocurrency supported on the exchange. It is a NodeJS/Electron application that trades cryptocurrencies. It is a subscription based service that is self-hosted. It is a fully automated service that requires no user interaction passed the initial setup.');
-            await c.insertLine('Technologies:', false, false);
+            c.insertLine('', false, false);
+            await c.insertLine('Technologies:', false, false, true);
+            c.insertLine('', false, false);
             await sleep(1000)
             await c.insertLine(' NodeJS', false, false);
             await c.insertLine(' Electron', false, false);
@@ -390,14 +384,14 @@ async function projects(c){
             await c.insertLine(' MYSQL', false, false);
             await c.insertLine(' Solidity - For on-chain payments', false, false);
         } else {
-            c.insertLine(`Error: Project '${answer}' not found.`, false, false, false, 'red');
+            c.insertLine(`Error: Project '${answer}' not found.`, false, false, false, 'rgb(150, 0, 0)');
         }
         c.insertLine('', true);
         stop();
         c.title = "Spencer Archdeacon - Portfolio";
     });
 }
-function handleKeypress(event){
+async function handleKeypress(event){
     const acceptableKeys = ["Enter", "Backspace", "Escape", 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/ ', '1234567890', ' ' ]
     if (event.key === "Enter" || event.key == '{enter}'){
         try{
@@ -442,6 +436,8 @@ function handleKeypress(event){
     } else if (event.key == 'ArrowUp'){
         this.input = this.history[this.historyPointer--];
         this.updateInput();
+        await sleep(200)
+        this.scroll();
     } else if (event.key == 'ArrowDown'){
         this.input = this.history[this.historyPointer++];
         this.updateInput();
