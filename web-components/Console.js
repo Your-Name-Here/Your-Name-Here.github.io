@@ -412,7 +412,7 @@ function handleKeypress(event){
         this.input = '';
         return;
     }
-    if (event.key === "Backspace"){
+    if (event.key === "Backspace" || event.key == '{bksp}'){
         if (this.input.length === 0) return;
         if ( this.input.slice(-1) === ';' ){
             this.input = this.input.slice(0, -6);
