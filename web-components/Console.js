@@ -3,6 +3,7 @@ class Console extends HTMLElement {
     constructor(){
         super();
         this._question = null;
+        this.keyboard = null;
         // create a container div
         this._console = document.createElement("div");
         document.body.appendChild(this._console);
@@ -16,6 +17,11 @@ class Console extends HTMLElement {
         this._setupCSS();
         this._title = "Spencer Archdeacon - Portfolio";
         this._header.innerHTML = this.title;
+        const image = document.createElement("img");
+        image.src = "./web-components/keyboard.png";
+        image.style.height = "100%";
+        image.style.cursor = "pointer";
+        this._header.appendChild(image);
         const style = document.createElement("style");
         const keyframes = `@keyframes blink {
             0% {
@@ -39,53 +45,20 @@ class Console extends HTMLElement {
         this._body.addEventListener("blur", () => {
             this._body.setAttribute("tabindex", "-1");
         });
-        this._body.addEventListener("keydown", (event) => {
-            const acceptableKeys = ["Enter", "Backspace", "Escape", 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/ ', '1234567890', ' ' ]
-            if (event.key === "Enter"){
-                try{
-                    document.querySelector(".cursor")?.remove();
-                } catch (e) {
-                    console.warn(e.message)
-                }
-                if(this._question){
-                    this._question.cb(this.input);
-                    return;
-                }
-                const event = new CustomEvent("command", {
-                    detail: {
-                        command: this.input.replaceAll('&nbsp;', ' ').trim()
-                    }
-                });
-                const command = this.input.replaceAll('&nbsp;', ' ').replaceAll('/', '').trim().split(' ')[0];
-                if (commands[command]){
-                    commands[command].run(this);
-                    this.dispatchEvent(event);
-                } else {
-                    if(this.input.length == 0 ) { 
-                        this.insertLine('', true)
-                        return;
-                    }
-                    this.insertLine(`'${command}' is an unknown command. try /help`, false);
-                    this.insertLine('', true);
-                }
-                this.input = '';
-                return;
+        this._body.addEventListener("keydown", handleKeypress.bind(this));
+        this.showKeyboard = false;
+        image.addEventListener("click", () => {
+            image.remove()
+            showKeyboard.bind(this)();
+        }, {once: true});
+        window.addEventListener("resize", (event) => {
+            this.scroll();
+            console.log(event.target.innerWidth);
+            if(event.target.innerWidth < 800  && !this.keyboard){
+                showKeyboard.bind(this)();
             }
-            if (event.key === "Backspace"){
-                if (this.input.length === 0) return;
-                if ( this.input.slice(-1) === ';' ){
-                    this.input = this.input.slice(0, -6);
-                }
-                this.input = this.input.slice(0, -1);
-            } else if (event.key === "Escape"){
-                this.input = '';
-            } else if (event.key == ' ') {
-                this.input += '&nbsp;';
-            } else if (acceptableKeys[3].includes(event.key) || acceptableKeys[4].includes(event.key)) {
-                this.input += event.key;
-            }
-            this.updateInput();
         });
+
     }
     get title(){
         return this._title;
@@ -173,6 +146,10 @@ class Console extends HTMLElement {
             minWidth: "400px",
             borderTopLeftRadius: "5px",
             borderTopRightRadius: "5px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0px 15px",
         }
         const bodyStyle = {
             backgroundColor: "rgb(14, 14, 14)",
@@ -389,3 +366,83 @@ async function projects(c){
         }
     });
 }
+function handleKeypress(event){
+    const acceptableKeys = ["Enter", "Backspace", "Escape", 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/ ', '1234567890', ' ' ]
+    if (event.key === "Enter" || event.key == '{enter}'){
+        try{
+            document.querySelector(".cursor")?.remove();
+        } catch (e) {
+            console.warn(e.message)
+        }
+        if(this._question){
+            this._question.cb(this.input);
+            return;
+        }
+        const event = new CustomEvent("command", {
+            detail: {
+                command: this.input.replaceAll('&nbsp;', ' ').trim()
+            }
+        });
+        const command = this.input.replaceAll('&nbsp;', ' ').replaceAll('/', '').trim().split(' ')[0];
+        if (commands[command]){
+            commands[command].run(this);
+            this.dispatchEvent(event);
+        } else {
+            if(this.input.length == 0 ) { 
+                this.insertLine('', true)
+                return;
+            }
+            this.insertLine(`'${command}' is an unknown command. try /help`, false);
+            this.insertLine('', true);
+        }
+        this.input = '';
+        return;
+    }
+    if (event.key === "Backspace"){
+        if (this.input.length === 0) return;
+        if ( this.input.slice(-1) === ';' ){
+            this.input = this.input.slice(0, -6);
+        }
+        this.input = this.input.slice(0, -1);
+    } else if (event.key === "Escape"){
+        this.input = '';
+    } else if (event.key == ' ') {
+        this.input += '&nbsp;';
+    } else if (acceptableKeys[3].includes(event.key) || acceptableKeys[4].includes(event.key)) {
+        this.input += event.key;
+    }
+    this.updateInput();
+}
+function showKeyboard(){
+    if(this.keyboard) return;
+    const Keyboard = window.SimpleKeyboard.default;
+    // initialize
+    this.keyboard = new Keyboard({
+        layout: {
+            default: [
+                '/help /clear',
+                'q w e r t y u i o p {bksp}',
+                'a s d f g h j k l {enter}',
+                'z x c v b n m /',
+                '{space}'
+            ]
+        },
+        onKeyPress: button => {
+            if(button != "{enter}") {
+                if(button == '/help' || button == '/clear') { // special buttons that require multiple keypresses
+                    for(const element of button.split('')){
+                        handleKeypress.bind(this)({key: element});
+                    };
+                    handleKeypress.bind(this)({key: '{enter}'});
+                } else {
+                    this.updateInput();
+                    handleKeypress.bind(this)({key: button});
+                }
+            } else {
+                this.keyboard.clearInput(".input")
+                handleKeypress.bind(this)({key: button});
+                console.log(this.input, document.querySelector(".input").value)
+            }
+        },
+    });
+ }
