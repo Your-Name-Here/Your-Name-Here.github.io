@@ -2,6 +2,8 @@
 class Console extends HTMLElement {
     constructor(){
         super();
+        this.history = [];
+        this._histPointer = null;
         this._question = null;
         this.keyboard = null;
         // create a container div
@@ -72,6 +74,18 @@ class Console extends HTMLElement {
     get title(){
         return this._title;
     }
+    set historyPointer(value){
+        this._histPointer = value;
+        if(this._histPointer == null) return this.history.length-1;
+        if(this._histPointer < 0) return 0;
+        if(this._histPointer > this.history.length - 1) return this.history.length - 1;
+    }
+    get historyPointer(){
+        if(this._histPointer == null) return this.history.length-1;
+        if(this._histPointer < 0) return 0;
+        if(this._histPointer > this.history.length - 1) return this.history.length - 1;
+        return this._histPointer;
+    }
     set title(value){
         this._title = value;
         this._header.innerHTML = this._title;
@@ -83,7 +97,7 @@ class Console extends HTMLElement {
     }
     connectedCallback(){
     }
-    async insertLine( text = '', addCursor = true, addDirectory = true, bold = false){
+    async insertLine( text = '', addCursor = true, addDirectory = true, bold = false, color = "white"){
         await sleep(200)
         const span = document.createElement("span");
         if(bold) span.style.fontWeight = "bold";
@@ -94,6 +108,7 @@ class Console extends HTMLElement {
                 text = text.replace('/'+command, `<span class="command">/${command}</span>`);
             }
         }
+        input.style.color = color;
         input.innerHTML = text;
         input.className = "currentInput";
         span.innerHTML = `<br/>${(addDirectory?'<span class="directory">C:\\Portfolio ></span> ':'&nbsp;&nbsp;')} `;
@@ -226,12 +241,12 @@ const commands = {
             c.insertLine('', true);
         }
     },
-    'exit': {
-        description: "Exit the console - See site as webpage",
-        run: (c) => {
-            c.remove();
-        }
-    },
+    // 'exit': {
+    //     description: "Exit the console - See site as webpage",
+    //     run: (c) => {
+    //         c.remove();
+    //     }
+    // },
     clear: {
         description: "Clear the console",
         run: (c) => {
@@ -269,7 +284,7 @@ const commands = {
     resume: {
         description: "Download my resume",
         run: (c) => {
-            c.insertLine('Not implemented yet.', false, false);
+            c.insertLine('Error: Resume file not found.', false, false, false, 'red');
             c.insertLine('', true);
         }
     },
@@ -329,7 +344,7 @@ const commands = {
         run: async (c) => {
             c.title = "Party!"
             const elements = document.getElementsByClassName('directory');
-            const spans = document.querySelectorAll('span:not(.directory)');
+            const spans = document.querySelectorAll('span.input');
             for(const el of elements) {
                 el.className += ' party';
                 await sleep(Math.random() * 500)
@@ -358,6 +373,7 @@ async function projects(c){
     await c.insertLine('', false, false);
     await c.askQuestion('Enter a number to view the project: ', async (answer) => {
         c._question = null;
+        c.input = '';
         if(answer == 1){
             await c.insertLine('Fetching project', false, false);
             await c.insertLine('', false, false);
@@ -373,11 +389,12 @@ async function projects(c){
             await c.insertLine(' PHP', false, false);
             await c.insertLine(' MYSQL', false, false);
             await c.insertLine(' Solidity - For on-chain payments', false, false);
-            
-            await c.insertLine('', true);
-            c.title = "Spencer Archdeacon - Portfolio";
-            stop();
+        } else {
+            c.insertLine(`Error: Project '${answer}' not found.`, false, false, false, 'red');
         }
+        c.insertLine('', true);
+        stop();
+        c.title = "Spencer Archdeacon - Portfolio";
     });
 }
 function handleKeypress(event){
@@ -398,6 +415,8 @@ function handleKeypress(event){
             }
         });
         const command = this.input.replaceAll('&nbsp;', ' ').replaceAll('/', '').trim().split(' ')[0];
+        this._histPointer = null;
+        if(command != this.history[this.history.length-1]) this.history.push(command);
         if (commands[command]){
             commands[command].run(this);
             this.dispatchEvent(event);
@@ -420,6 +439,12 @@ function handleKeypress(event){
         this.input = this.input.slice(0, -1);
     } else if (event.key === "Escape"){
         this.input = '';
+    } else if (event.key == 'ArrowUp'){
+        this.input = this.history[this.historyPointer--];
+        this.updateInput();
+    } else if (event.key == 'ArrowDown'){
+        this.input = this.history[this.historyPointer++];
+        this.updateInput();
     } else if (event.key == ' ') {
         this.input += '&nbsp;';
     } else if (acceptableKeys[3].includes(event.key) || acceptableKeys[4].includes(event.key)) {
