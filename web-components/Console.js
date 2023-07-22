@@ -6,6 +6,7 @@ class Console extends HTMLElement {
         this.keyboard = null;
         // create a container div
         this._console = document.createElement("div");
+        this._console.className = "console";
         document.body.appendChild(this._console);
         this.input = ''
         // create a header div
@@ -53,9 +54,17 @@ class Console extends HTMLElement {
         }, {once: true});
         window.addEventListener("resize", (event) => {
             this.scroll();
-            console.log(event.target.innerWidth);
             if(event.target.innerWidth < 800  && !this.keyboard){
                 showKeyboard.bind(this)();
+            }
+            const mediaQuery = window.matchMedia('(max-width: 600px)')
+            console.log(mediaQuery.matches)
+            if(mediaQuery.matches){
+                this._console.style.width = "100%";
+                this._console.style.margin = "0px";
+            } else {
+                this._console.style.width = "75%";
+                this._console.style.margin = "auto auto";
             }
         });
 
@@ -143,7 +152,7 @@ class Console extends HTMLElement {
             fontWeight: "bold",
             fontSize: "clamp(15px, 2vw, 20px)",
             // borderBottom: "1px solid white",
-            minWidth: "400px",
+            minWidth: "384px",
             borderTopLeftRadius: "5px",
             borderTopRightRadius: "5px",
             display: "flex",
@@ -171,9 +180,14 @@ class Console extends HTMLElement {
         
         // this._console.style.backgroundColor = "black";
         this._console.style.color = "white";
-        this._console.style.width = "75%";
-        // this._console.style.aspectRatio = "0.5/1";
-        this._console.style.margin = "auto auto";
+        const mediaQuery = window.matchMedia('(max-width: 600px)')
+        if(mediaQuery.matches){
+            this._console.style.width = "100%";
+            this._console.style.margin = "0px";
+        } else {
+            this._console.style.width = "75%";
+            this._console.style.margin = "auto auto";
+        }
         this._console.style.boxShadow = "0px 0px 15px 0px black";
     }
     async insertText(text){
